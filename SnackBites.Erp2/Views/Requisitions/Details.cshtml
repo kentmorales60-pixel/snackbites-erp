@@ -1,0 +1,168 @@
+@model SnackBites.Erp2.Models.Requisition
+@using SnackBites.Erp2.Models
+@{
+    ViewBag.Title = "Requisition Details";
+    bool stockChecked = Model.Status != RequisitionStatus.Submitted &&
+                        Model.Status != RequisitionStatus.ReturnedForRevision &&
+                        Model.Status != RequisitionStatus.Approved &&
+                        Model.Status != RequisitionStatus.Cancelled;
+    bool slipAvailable = Model.Status != RequisitionStatus.Submitted &&
+                         Model.Status != RequisitionStatus.ReturnedForRevision &&
+                         Model.Status != RequisitionStatus.Cancelled;
+    bool hasPurchaseTicket = Model.Status == RequisitionStatus.PendingBudget ||
+                             Model.Status == RequisitionStatus.BudgetApproved ||
+                             Model.Status == RequisitionStatus.OnHold ||
+                             Model.Status == RequisitionStatus.PurchaseOrdered ||
+                             Model.Status == RequisitionStatus.Received;
+}
+
+<main>
+    <div class="page-header">
+        <div>
+            <div class="text-muted" style="font-size:12.5px; font-weight:500; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">Requisition</div>
+            <h2 style="margin:0;">@Model.RequisitionNo</h2>
+        </div>
+        <span class="status-badge" style="background:var(--brand-50); color:var(--brand-700); font-size:13px; padding:6px 14px;">@Model.Status</span>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    @if (Model.Status == RequisitionStatus.OnHold)
+    {
+        <div class="alert alert-danger">
+            <strong>Notice of Hold:</strong> the purchase budget was not approved. @Model.ReviewRemarks
+        </div>
+    }
+
+    <dl class="dl-horizontal">
+        <dt>Department</dt>
+        <dd>@Model.Department</dd>
+        <dt>Date requested</dt>
+        <dd>@Model.DateRequested.ToString("MMM dd, yyyy h:mm tt")</dd>
+        @if (!string.IsNullOrEmpty(Model.ReviewRemarks))
+        {
+            <dt>Reviewer remarks</dt>
+            <dd>@Model.ReviewRemarks</dd>
+        }
+    </dl>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Unit</th>
+                <th>Qty requested</th>
+                @if (stockChecked)
+                {
+                    <th>Qty reserved</th>
+                    <th>Shortage</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var l in Model.Lines)
+            {
+                <tr>
+                    <td>@l.Item.Name</td>
+                    <td class="text-muted">@l.Item.Unit</td>
+                    <td>@l.QtyRequested</td>
+                    @if (stockChecked)
+                    {
+                        <td>@l.QtyReserved</td>
+                        <td class="@(l.QtyShort > 0 ? "text-danger" : "")">@l.QtyShort</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="page-actions">
+        @if (User.IsInRole("CoOwner1") && Model.Status == RequisitionStatus.Submitted)
+        {
+            @Html.ActionLink("Review", "Review", new { id = Model.Id }, new { @class = "btn btn-primary" })
+        }
+
+        @if (User.IsInRole("InventoryStaff") && Model.Status == RequisitionStatus.Approved)
+        {
+            using (Html.BeginForm("CheckStock", "Requisitions", new { id = Model.Id }, FormMethod.Post, new { style = "display:inline" }))
+            {
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-warning">Check Stock &amp; Reserve</button>
+            }
+        }
+
+        @if (User.IsInRole("CoOwner2") && Model.Status == RequisitionStatus.AwaitingPurchase)
+        {
+            using (Html.BeginForm("PreparePurchaseRequisition", "Requisitions", new { id = Model.Id }, FormMethod.Post, new { style = "display:inline" }))
+            {
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-warning">Prepare Purchase Requisition</button>
+            }
+        }
+
+        @if (hasPurchaseTicket)
+        {
+            var ticketLabel = (User.IsInRole("MainOwner") && Model.Status == RequisitionStatus.PendingBudget)
+                ? "Review Budget"
+                : "View Purchase Requisition";
+            @Html.ActionLink(ticketLabel, "PurchaseTicket", new { id = Model.Id }, new { @class = "btn btn-primary" })
+        }
+
+        @if (User.IsInRole("InventoryStaff") &&
+             (Model.Status == RequisitionStatus.BudgetApproved ||
+              Model.Status == RequisitionStatus.PurchaseOrdered ||
+              Model.Status == RequisitionStatus.Received))
+        {
+            using (Html.BeginForm("AllocateReceived", "Requisitions", new { id = Model.Id }, FormMethod.Post, new { style = "display:inline" }))
+            {
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-warning">Allocate Received Items</button>
+            }
+        }
+
+        @if (User.IsInRole("RequisitionStaff") &&
+             (Model.Status == RequisitionStatus.ReturnedForRevision || Model.Status == RequisitionStatus.OnHold))
+        {
+            @Html.ActionLink("Revise & Resubmit", "Edit", new { id = Model.Id }, new { @class = "btn btn-primary" })
+            using (Html.BeginForm("Cancel", "Requisitions", new { id = Model.Id }, FormMethod.Post, new { style = "display:inline" }))
+            {
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger" onclick="return confirm('Cancel this requisition?');">Cancel Requisition</button>
+            }
+        }
+
+        @if (User.IsInRole("InventoryStaff") && Model.Status == RequisitionStatus.Reserved)
+        {
+            @Html.ActionLink("Prepare Issuance Slip", "IssuanceSlip", new { id = Model.Id }, new { @class = "btn btn-success" })
+        }
+
+        @if (User.IsInRole("InventoryStaff") && Model.Status == RequisitionStatus.Issued)
+        {
+            using (Html.BeginForm("CloseRequisition", "Requisitions", new { id = Model.Id }, FormMethod.Post, new { style = "display:inline" }))
+            {
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-warning" onclick="return confirm('Deduct stock and close this requisition?');">Deduct Stock &amp; Close</button>
+            }
+        }
+
+        @if (Model.Status == RequisitionStatus.Reserved || Model.Status == RequisitionStatus.Issued || Model.Status == RequisitionStatus.Closed)
+        {
+            @Html.ActionLink("Issuance Slip", "IssuanceSlip", new { id = Model.Id }, new { @class = "btn btn-default" })
+        }
+
+        @if (Model.Status == RequisitionStatus.Issued || Model.Status == RequisitionStatus.Closed)
+        {
+            @Html.ActionLink("Acknowledgement Receipt", "Receipt", new { id = Model.Id }, new { @class = "btn btn-default" })
+        }
+
+        @if (slipAvailable)
+        {
+            @Html.ActionLink("View Requisition Slip", "Slip", new { id = Model.Id }, new { @class = "btn btn-info" })
+        }
+
+        @Html.ActionLink("Back to list", "Index", null, new { @class = "btn btn-default" })
+    </div>
+</main>

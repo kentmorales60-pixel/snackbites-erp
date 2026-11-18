@@ -1,0 +1,49 @@
+﻿@model SnackBites.Erp2.Models.Requisition
+@{ ViewBag.Title = "Review Requisition"; }
+
+<main>
+    <div class="page-header">
+        <h2>Review @Model.RequisitionNo</h2>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <dl class="dl-horizontal">
+        <dt>Department</dt>
+        <dd>@Model.Department</dd>
+        <dt>Date requested</dt>
+        <dd>@Model.DateRequested.ToString("MMM dd, yyyy h:mm tt")</dd>
+    </dl>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr><th>Item</th><th>Unit</th><th>Qty requested</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var l in Model.Lines)
+            {
+                <tr><td>@l.Item.Name</td><td class="text-muted">@l.Item.Unit</td><td>@l.QtyRequested</td></tr>
+            }
+        </tbody>
+    </table>
+
+    @using (Html.BeginForm("Review", "Requisitions", FormMethod.Post))
+    {
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" value="@Model.Id" />
+
+        <div class="form-group">
+            <label>Remarks <span class="text-muted" style="font-weight:400;">(required if rejecting)</span></label>
+            <textarea name="remarks" class="form-control" rows="3"></textarea>
+        </div>
+
+        <div class="page-actions">
+            <button type="submit" name="decision" value="approve" class="btn btn-success">Approve</button>
+            <button type="submit" name="decision" value="reject" class="btn btn-danger">Reject</button>
+            @Html.ActionLink("Cancel", "Index", null, new { @class = "btn btn-default" })
+        </div>
+    }
+</main>

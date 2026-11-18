@@ -1,0 +1,26 @@
+﻿@{
+    ViewBag.Title = "Home";
+}
+
+<main>
+    <section class="home-hero">
+        <h1>Requisition management, simplified.</h1>
+        <p>A clean, auditable workflow for requesting, reviewing, budgeting, and issuing stock across departments — built for speed and clarity.</p>
+        <a href="@Url.Action("Index", "Requisitions")" class="btn btn-primary btn-md">Open Requisitions &raquo;</a>
+    </section>
+
+    <div class="feature-grid">
+        <section class="feature-card">
+            <h2>Request &amp; Track</h2>
+            <p>Staff submit item requisitions by department. Every request is numbered, timestamped, and traceable from submission to closure.</p>
+        </section>
+        <section class="feature-card">
+            <h2>Review &amp; Budget</h2>
+            <p>Co-Owner 1 reviews requests. Co-Owner 2 prepares purchase requisitions for shortages. Main Owner approves budget with full visibility.</p>
+        </section>
+        <section class="feature-card">
+            <h2>Reserve, Issue, Close</h2>
+            <p>Inventory staff check stock, reserve quantities, print issuance slips, capture acknowledgements, and deduct stock — all in one flow.</p>
+        </section>
+    </div>
+</main>

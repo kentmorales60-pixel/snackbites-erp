@@ -1,0 +1,43 @@
+﻿@model SnackBites.Erp2.Models.Requisition
+@{ ViewBag.Title = "Requisition Slip"; }
+
+<main>
+    <div class="page-header">
+        <div>
+            <div class="text-muted" style="font-size:12.5px; font-weight:500; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">Document</div>
+            <h2 style="margin:0;">Requisition Slip</h2>
+        </div>
+    </div>
+
+    <dl class="dl-horizontal">
+        <dt>Requisition No.</dt>
+        <dd><strong>@Model.RequisitionNo</strong></dd>
+        <dt>Department</dt>
+        <dd>@Model.Department</dd>
+        <dt>Date requested</dt>
+        <dd>@Model.DateRequested.ToString("MMM dd, yyyy h:mm tt")</dd>
+        <dt>Requested by</dt>
+        <dd>@ViewBag.RequestedBy</dd>
+        <dt>Approved by</dt>
+        <dd>@ViewBag.ApprovedBy</dd>
+        <dt>Date approved</dt>
+        <dd>@(Model.Co1ReviewedOn?.ToString("MMM dd, yyyy h:mm tt"))</dd>
+    </dl>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr><th>Item</th><th>Unit</th><th>Qty requested</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var l in Model.Lines)
+            {
+                <tr><td>@l.Item.Name</td><td class="text-muted">@l.Item.Unit</td><td>@l.QtyRequested</td></tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="page-actions">
+        <button onclick="window.print()" class="btn btn-outline-dark">Print</button>
+        @Html.ActionLink("Back", "Details", new { id = Model.Id }, new { @class = "btn btn-default" })
+    </div>
+</main>

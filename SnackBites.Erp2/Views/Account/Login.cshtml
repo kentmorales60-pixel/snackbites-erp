@@ -1,0 +1,52 @@
+﻿@using SnackBites.Erp2.Models
+@model LoginViewModel
+@{ ViewBag.Title = "Sign in"; }
+
+<main>
+    <div class="row" style="gap:0;">
+        <div class="col-md-7">
+            <section id="loginForm">
+                <h2>Sign in</h2>
+                <p class="text-muted" style="margin-bottom:var(--space-5);">Use your local account to access the ERP.</p>
+
+                @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { role = "form" }))
+                {
+                    @Html.AntiForgeryToken()
+                    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.Email)
+                        @Html.TextBoxFor(m => m.Email, new { @class = "form-control", placeholder = "you@company.com" })
+                        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="form-group">
+                        @Html.LabelFor(m => m.Password)
+                        @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "••••••••" })
+                        @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="form-group" style="display:flex; align-items:center; margin-bottom:var(--space-5);">
+                        @Html.CheckBoxFor(m => m.RememberMe)
+                        @Html.LabelFor(m => m.RememberMe, new { style = "margin:0; font-weight:400; cursor:pointer;" })
+                    </div>
+
+                    <div style="display:flex; align-items:center; gap:var(--space-4); flex-wrap:wrap;">
+                        <input type="submit" value="Sign in" class="btn btn-primary" />
+                        @Html.ActionLink("Create an account", "Register", null, new { @class = "btn btn-outline-dark" })
+                    </div>
+                }
+            </section>
+        </div>
+        <div class="col-md-5">
+            <section id="socialLoginForm">
+                <h4 style="margin-bottom:var(--space-4);">External sign-in</h4>
+                @Html.Partial("_ExternalLoginsListPartial", new ExternalLoginListViewModel { ReturnUrl = ViewBag.ReturnUrl })
+            </section>
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    @Scripts.Render("~/bundles/jqueryval")
+}

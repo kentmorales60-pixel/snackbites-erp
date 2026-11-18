@@ -1,0 +1,57 @@
+﻿@model SnackBites.Erp2.Models.Requisition
+@using SnackBites.Erp2.Models
+@{ ViewBag.Title = "Stock Issuance Slip"; }
+
+<main>
+    <div class="page-header">
+        <div>
+            <div class="text-muted" style="font-size:12.5px; font-weight:500; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">Document</div>
+            <h2 style="margin:0;">Stock Issuance Slip</h2>
+        </div>
+        <span class="status-badge" style="background:var(--brand-50); color:var(--brand-700); font-size:13px; padding:6px 14px;">@Model.Status</span>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <dl class="dl-horizontal">
+        <dt>Requisition No.</dt>
+        <dd><strong>@Model.RequisitionNo</strong></dd>
+        <dt>Issue to</dt>
+        <dd>@Model.Department</dd>
+    </dl>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr><th>Item</th><th>Unit</th><th>Qty to release</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var l in Model.Lines)
+            {
+                <tr><td>@l.Item.Name</td><td class="text-muted">@l.Item.Unit</td><td>@l.QtyReserved</td></tr>
+            }
+        </tbody>
+    </table>
+
+    @if (User.IsInRole("InventoryStaff") && Model.Status == RequisitionStatus.Reserved)
+    {
+        using (Html.BeginForm("Issue", "Requisitions", new { id = Model.Id }, FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <div class="form-group" style="max-width:400px;">
+                <label>Received by (staff name)</label>
+                <input type="text" name="receivedBy" class="form-control" maxlength="100" />
+            </div>
+            <div class="page-actions">
+                <button type="submit" class="btn btn-success">Issue Items to @Model.Department</button>
+            </div>
+        }
+    }
+
+    <div class="page-actions">
+        <button onclick="window.print()" class="btn btn-outline-dark">Print</button>
+        @Html.ActionLink("Back", "Details", new { id = Model.Id }, new { @class = "btn btn-default" })
+    </div>
+</main>

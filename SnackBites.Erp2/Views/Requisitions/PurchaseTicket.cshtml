@@ -1,0 +1,80 @@
+@model SnackBites.Erp2.Models.Requisition
+@using SnackBites.Erp2.Models
+@{
+    ViewBag.Title = "Purchase Requisition";
+    var pr = (PurchaseRequisition)ViewBag.Pr;
+}
+
+<main>
+    <div class="page-header">
+        <div>
+            <div class="text-muted" style="font-size:12.5px; font-weight:500; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">Purchase Requisition</div>
+            <h2 style="margin:0;">For @Model.RequisitionNo</h2>
+        </div>
+        <span class="status-badge" style="background:var(--warning-bg); color:var(--warning); font-size:13px; padding:6px 14px;">@pr.Status</span>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <dl class="dl-horizontal">
+        <dt>Department</dt>
+        <dd>@Model.Department</dd>
+        <dt>Estimated total</dt>
+        <dd style="font-size:18px; font-weight:600;">₱ @pr.EstimatedTotal.ToString("N2")</dd>
+        @if (pr.DecidedOn.HasValue)
+        {
+            <dt>Decided on</dt>
+            <dd>@pr.DecidedOn.Value.ToString("MMM dd, yyyy h:mm tt")</dd>
+            <dt>Remarks</dt>
+            <dd>@pr.Remarks</dd>
+        }
+    </dl>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Unit</th>
+                <th>Shortage to buy</th>
+                <th>Unit cost</th>
+                <th>Est. cost</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var l in Model.Lines.Where(x => x.QtyShort > 0))
+            {
+                <tr>
+                    <td>@l.Item.Name</td>
+                    <td class="text-muted">@l.Item.Unit</td>
+                    <td>@l.QtyShort</td>
+                    <td>@l.Item.UnitCost.ToString("N2")</td>
+                    <td><strong>@((l.QtyShort * l.Item.UnitCost).ToString("N2"))</strong></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (User.IsInRole("MainOwner") && Model.Status == RequisitionStatus.PendingBudget)
+    {
+        using (Html.BeginForm("BudgetDecision", "Requisitions", new { id = Model.Id }, FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label>Remarks <span class="text-muted" style="font-weight:400;">(required if rejecting)</span></label>
+                <textarea name="remarks" class="form-control" rows="3"></textarea>
+            </div>
+            <div class="page-actions">
+                <button type="submit" name="decision" value="approve" class="btn btn-success">Approve Budget</button>
+                <button type="submit" name="decision" value="reject" class="btn btn-danger">Reject (Notice of Hold)</button>
+            </div>
+        }
+    }
+
+    <div class="page-actions">
+        <button onclick="window.print()" class="btn btn-outline-dark">Print</button>
+        @Html.ActionLink("Back", "Details", new { id = Model.Id }, new { @class = "btn btn-default" })
+    </div>
+</main>

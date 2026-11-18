@@ -1,0 +1,40 @@
+﻿@model IEnumerable<SnackBites.Erp2.Models.Requisition>
+@{ ViewBag.Title = "Requisitions"; }
+
+<main>
+    <div class="page-header">
+        <h2>Requisitions</h2>
+        @if (User.IsInRole("RequisitionStaff"))
+        {
+            @Html.ActionLink("New Requisition", "Create", null, new { @class = "btn btn-primary" })
+        }
+    </div>
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>No.</th>
+                <th>Department</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var r in Model)
+            {
+                <tr>
+                    <td><strong>@r.RequisitionNo</strong></td>
+                    <td>@r.Department</td>
+                    <td class="text-muted">@r.DateRequested.ToString("MMM dd, yyyy h:mm tt")</td>
+                    <td>
+                        <span class="status-badge" style="background:var(--brand-50); color:var(--brand-700);">@r.Status</span>
+                    </td>
+                    <td style="text-align:right;">
+                        @Html.ActionLink("View →", "Details", new { id = r.Id }, new { @class = "btn btn-outline-dark", style = "padding:5px 12px; font-size:13px;" })
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</main>

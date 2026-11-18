@@ -1,0 +1,41 @@
+﻿@model SnackBites.Erp2.Models.Requisition
+@{ ViewBag.Title = "Acknowledgement Receipt"; }
+
+<main>
+    <div class="page-header">
+        <div>
+            <div class="text-muted" style="font-size:12.5px; font-weight:500; text-transform:uppercase; letter-spacing:0.06em; margin-bottom:6px;">Document</div>
+            <h2 style="margin:0;">Acknowledgement Receipt</h2>
+        </div>
+    </div>
+
+    <dl class="dl-horizontal">
+        <dt>Requisition No.</dt>
+        <dd><strong>@Model.RequisitionNo</strong></dd>
+        <dt>Issued to</dt>
+        <dd>@Model.Department</dd>
+        <dt>Received by</dt>
+        <dd>@Model.AcknowledgedBy</dd>
+        <dt>Issued by</dt>
+        <dd>@ViewBag.IssuedBy</dd>
+        <dt>Date issued</dt>
+        <dd>@(Model.IssuedOn?.ToString("MMM dd, yyyy h:mm tt"))</dd>
+    </dl>
+
+    <table class="table table-bordered">
+        <thead>
+            <tr><th>Item</th><th>Unit</th><th>Qty issued</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var l in Model.Lines)
+            {
+                <tr><td>@l.Item.Name</td><td class="text-muted">@l.Item.Unit</td><td>@l.QtyReserved</td></tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="page-actions">
+        <button onclick="window.print()" class="btn btn-outline-dark">Print</button>
+        @Html.ActionLink("Back", "Details", new { id = Model.Id }, new { @class = "btn btn-default" })
+    </div>
+</main>
